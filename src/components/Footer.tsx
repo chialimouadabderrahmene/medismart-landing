@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const footerLinks = {
   Produit: [
@@ -53,11 +54,13 @@ export default function Footer({ onOpenTrial }: { onOpenTrial: () => void }) {
         <div className="py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg feature-icon-gradient">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-              </div>
+              <Image
+                src="/logo.png"
+                alt="MediSmart"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
               <span className="text-base font-bold">MediSmart</span>
             </div>
             <p className="text-sm text-white/40 leading-relaxed">

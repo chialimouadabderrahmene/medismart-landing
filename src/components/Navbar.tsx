@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
 
 const links = [
   { label: "Fonctionnalités", href: "#features" },
@@ -35,11 +36,14 @@ export default function Navbar({ onOpenTrial }: { onOpenTrial: () => void }) {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <a href="#" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl feature-icon-gradient">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-              </div>
+              <Image
+                src="/logo.png"
+                alt="MediSmart"
+                width={36}
+                height={36}
+                className="rounded-xl"
+                priority
+              />
               <span className="text-lg font-bold tracking-tight">
                 Medi<span className="gradient-text">Smart</span>
               </span>

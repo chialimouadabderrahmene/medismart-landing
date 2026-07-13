@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Loader2 } from "lucide-react";
+import { X, Check, Loader2, Download, ArrowDown } from "lucide-react";
+
+const INSTALLER_URL =
+  "https://github.com/chialimouadabderrahmene/medismart-downloads/releases/download/v1.0.0/MediSmart_3.0_x64-setup.exe";
 
 interface TrialModalProps {
   open: boolean;
@@ -13,6 +16,7 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const submittedRef = useRef(false);
 
   const [form, setForm] = useState({
     nom: "",
@@ -30,8 +34,22 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
     setError("");
   }
 
+  function triggerDownload() {
+    const a = document.createElement("a");
+    a.href = INSTALLER_URL;
+    // External cross-origin URL — download attribute won't work; open in same tab
+    // so the browser handles the .exe as a file download
+    a.setAttribute("download", "MediSmart_3.0_x64-setup.exe");
+    a.rel = "noopener noreferrer";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => document.body.removeChild(a), 200);
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submittedRef.current || loading) return;
     if (!form.consent) {
       setError("Veuillez accepter d'être contacté pour continuer.");
       return;
@@ -46,6 +64,8 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Erreur serveur");
+      submittedRef.current = true;
+      triggerDownload();
       setSubmitted(true);
     } catch {
       setError("Une erreur est survenue. Veuillez réessayer.");
@@ -58,6 +78,7 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
     onClose();
     setTimeout(() => {
       setSubmitted(false);
+      submittedRef.current = false;
       setError("");
       setForm({
         nom: "",
@@ -103,14 +124,12 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
               <form onSubmit={handleSubmit} className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl feature-icon-gradient">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
+                    <Download size={18} color="white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold">Essayer MediSmart</h3>
+                    <h3 className="text-lg font-bold">Télécharger MediSmart</h3>
                     <p className="text-xs text-text-secondary">
-                      Accès gratuit pendant 7 jours
+                      Essai gratuit — 7 jours, sans engagement
                     </p>
                   </div>
                 </div>
@@ -119,16 +138,16 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
                   <Field label="Nom" value={form.nom} onChange={(v) => update("nom", v)} required />
                   <Field label="Prénom" value={form.prenom} onChange={(v) => update("prenom", v)} required />
                 </div>
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <Field label="Cabinet" value={form.cabinet} onChange={(v) => update("cabinet", v)} />
-                  <Field label="Spécialité" value={form.specialite} onChange={(v) => update("specialite", v)} required />
-                </div>
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <Field label="Ville" value={form.ville} onChange={(v) => update("ville", v)} required />
-                  <Field label="Téléphone" value={form.telephone} onChange={(v) => update("telephone", v)} type="tel" required />
-                </div>
-                <div className="mb-4">
+                <div className="mb-3">
                   <Field label="Email professionnel" value={form.email} onChange={(v) => update("email", v)} type="email" required />
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <Field label="Téléphone" value={form.telephone} onChange={(v) => update("telephone", v)} type="tel" required />
+                  <Field label="Cabinet" value={form.cabinet} onChange={(v) => update("cabinet", v)} />
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <Field label="Ville" value={form.ville} onChange={(v) => update("ville", v)} required />
+                  <Field label="Spécialité" value={form.specialite} onChange={(v) => update("specialite", v)} required />
                 </div>
 
                 <label className="flex items-start gap-3 mb-5 cursor-pointer group">
@@ -155,50 +174,74 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
                   className="w-full h-12 rounded-xl bg-primary hover:bg-primary-dark text-white font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {loading ? (
-                    <Loader2 size={18} className="animate-spin" />
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      <span>Envoi en cours...</span>
+                    </>
                   ) : (
-                    "Recevoir mon accès d'essai"
+                    <>
+                      <Download size={16} />
+                      <span>Télécharger MediSmart</span>
+                    </>
                   )}
                 </button>
+
+                <p className="text-center text-[11px] text-text-tertiary mt-3">
+                  Windows 10/11 · Installation en 5 minutes · 120 Mo
+                </p>
               </form>
             ) : (
               <div className="p-8 sm:p-10 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 mx-auto mb-5">
-                  <Check size={28} className="text-emerald-500" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Merci Docteur.</h3>
-                <p className="text-sm text-text-secondary mb-6">
-                  Votre demande a bien été enregistrée.
-                </p>
-
-                <div className="text-left rounded-xl bg-surface p-5 mb-6">
-                  <p className="text-sm font-medium mb-3">
-                    Notre équipe vous enverra prochainement :
-                  </p>
-                  <div className="flex flex-col gap-2.5">
-                    {[
-                      "Le lien de téléchargement",
-                      "Votre numéro de série d'essai valable 7 jours",
-                      "Les instructions d'installation",
-                    ].map((item) => (
-                      <div key={item} className="flex items-center gap-2.5 text-sm text-text-secondary">
-                        <Check size={14} className="text-emerald-500 shrink-0" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <p className="text-xs text-text-tertiary mb-6">
-                  Merci de vérifier également votre dossier spam.
-                </p>
-
-                <button
-                  onClick={handleClose}
-                  className="h-10 px-6 rounded-lg bg-surface hover:bg-black/[0.06] text-sm font-medium transition-colors cursor-pointer"
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+                  className="relative mx-auto mb-6"
                 >
-                  Fermer
-                </button>
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 mx-auto">
+                    <ArrowDown size={28} className="text-emerald-500" />
+                  </div>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.4, type: "spring", stiffness: 300 }}
+                    className="absolute -top-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 shadow-md"
+                    style={{ left: "calc(50% + 16px)" }}
+                  >
+                    <Check size={14} className="text-white" strokeWidth={3} />
+                  </motion.div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <h3 className="text-xl font-bold mb-3">Merci Docteur.</h3>
+                  <p className="text-sm text-text-secondary mb-6">
+                    Votre téléchargement a commencé.<br />
+                    Notre équipe vous enverra prochainement votre numéro de série d&apos;essai (7 jours) par e-mail.
+                  </p>
+                </motion.div>
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-xs text-text-tertiary mb-6"
+                >
+                  Veuillez vérifier votre boîte de réception ainsi que votre dossier Courrier indésirable.
+                </motion.p>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                  onClick={handleClose}
+                  className="h-11 px-8 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-semibold transition-all duration-200 cursor-pointer"
+                >
+                  Continuer
+                </motion.button>
               </div>
             )}
           </motion.div>

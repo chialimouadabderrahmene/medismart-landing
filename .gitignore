@@ -36,6 +36,14 @@ yarn-error.log*
 # data
 /data
 
+# downloads placeholder
+/public/downloads/
+
+# root-level duplicates
+/logo.png
+/screen.png
+/videoo demo.mp4
+
 # vercel
 .vercel
 

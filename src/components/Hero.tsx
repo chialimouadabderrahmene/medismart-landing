@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Play, ArrowRight } from "lucide-react";
+import { Play, Download } from "lucide-react";
+import Image from "next/image";
 
 export default function Hero({ onOpenTrial }: { onOpenTrial: () => void }) {
   return (
@@ -57,11 +58,8 @@ export default function Hero({ onOpenTrial }: { onOpenTrial: () => void }) {
               onClick={onOpenTrial}
               className="group h-13 px-8 text-base font-semibold text-white rounded-full bg-primary hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 flex items-center gap-2 cursor-pointer"
             >
+              <Download size={18} />
               Essayer gratuitement
-              <ArrowRight
-                size={18}
-                className="transition-transform duration-200 group-hover:translate-x-0.5"
-              />
             </button>
             <a
               href="#demo"
@@ -96,7 +94,14 @@ export default function Hero({ onOpenTrial }: { onOpenTrial: () => void }) {
             </div>
 
             <div className="relative aspect-[16/9] bg-gradient-to-br from-surface to-white overflow-hidden">
-              <DashboardMockup />
+              <Image
+                src="/screen.png"
+                alt="MediSmart Dashboard"
+                fill
+                className="object-cover object-top"
+                priority
+                sizes="(max-width: 768px) 100vw, 1024px"
+              />
             </div>
           </div>
         </motion.div>
@@ -105,102 +110,4 @@ export default function Hero({ onOpenTrial }: { onOpenTrial: () => void }) {
   );
 }
 
-function DashboardMockup() {
-  return (
-    <div className="absolute inset-0 p-6 flex gap-4">
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.8, duration: 0.6 }}
-        className="w-56 shrink-0 flex flex-col gap-3"
-      >
-        <div className="h-10 rounded-lg bg-primary/10 flex items-center px-3 gap-2">
-          <div className="w-5 h-5 rounded bg-primary/20" />
-          <div className="h-2.5 w-20 rounded bg-primary/30" />
-        </div>
-        {["Patients", "Rendez-vous", "Ordonnances", "Documents", "IA Chat"].map((item, i) => (
-          <motion.div
-            key={item}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1 + i * 0.1, duration: 0.4 }}
-            className={`h-9 rounded-lg flex items-center px-3 gap-2 ${
-              i === 0 ? "bg-primary/[0.08] border border-primary/10" : "hover:bg-black/[0.02]"
-            }`}
-          >
-            <div className={`w-4 h-4 rounded ${i === 0 ? "bg-primary/20" : "bg-black/[0.06]"}`} />
-            <span className={`text-xs font-medium ${i === 0 ? "text-primary" : "text-text-secondary"}`}>
-              {item}
-            </span>
-          </motion.div>
-        ))}
-      </motion.div>
 
-      <div className="flex-1 flex flex-col gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.5 }}
-          className="flex items-center justify-between"
-        >
-          <div>
-            <div className="h-3 w-32 rounded bg-black/[0.08] mb-1.5" />
-            <div className="h-2 w-48 rounded bg-black/[0.04]" />
-          </div>
-          <div className="flex gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10" />
-            <div className="h-8 w-8 rounded-lg bg-black/[0.04]" />
-          </div>
-        </motion.div>
-
-        <div className="grid grid-cols-4 gap-3">
-          {[
-            { label: "Patients", value: "1,247", color: "bg-blue-500" },
-            { label: "Aujourd'hui", value: "18", color: "bg-emerald-500" },
-            { label: "Ordonnances", value: "342", color: "bg-violet-500" },
-            { label: "IA Analyses", value: "89", color: "bg-amber-500" },
-          ].map((card, i) => (
-            <motion.div
-              key={card.label}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1 + i * 0.1, duration: 0.5 }}
-              className="rounded-xl border border-border bg-white p-3 shadow-sm"
-            >
-              <div className="flex items-center gap-1.5 mb-2">
-                <div className={`w-2 h-2 rounded-full ${card.color}`} />
-                <span className="text-[10px] font-medium text-text-tertiary">{card.label}</span>
-              </div>
-              <span className="text-lg font-bold">{card.value}</span>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5, duration: 0.6 }}
-          className="flex-1 rounded-xl border border-border bg-white p-4 shadow-sm"
-        >
-          <div className="h-2.5 w-28 rounded bg-black/[0.08] mb-4" />
-          <div className="h-full flex items-end gap-2 pb-2">
-            {[40, 65, 45, 80, 55, 70, 90, 60, 75, 85, 50, 95].map((h, i) => (
-              <motion.div
-                key={i}
-                initial={{ scaleY: 0 }}
-                animate={{ scaleY: 1 }}
-                transition={{ delay: 1.7 + i * 0.05, duration: 0.4 }}
-                className="flex-1 rounded-t-md origin-bottom"
-                style={{
-                  height: `${h}%`,
-                  background: `linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%)`,
-                  opacity: 0.15 + (h / 100) * 0.6,
-                }}
-              />
-            ))}
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
