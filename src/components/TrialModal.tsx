@@ -4,8 +4,11 @@ import { useState, useRef, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Loader2, Download, ArrowDown } from "lucide-react";
 
+// Always serves the latest FREE MediSmart installer. This endpoint redirects to
+// the newest free-baseline build in the official releases repo, so the landing
+// page never needs a version bump and never hands out a premium build.
 const INSTALLER_URL =
-  "https://github.com/chialimouadabderrahmene/medismart-downloads/releases/download/v1.0.0/MediSmart_3.0_x64-setup.exe";
+  "https://medismart-backend-main.vercel.app/api/download/latest";
 
 interface TrialModalProps {
   open: boolean;
@@ -37,9 +40,9 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
   function triggerDownload() {
     const a = document.createElement("a");
     a.href = INSTALLER_URL;
-    // External cross-origin URL — download attribute won't work; open in same tab
-    // so the browser handles the .exe as a file download
-    a.setAttribute("download", "MediSmart_3.0_x64-setup.exe");
+    // Cross-origin redirect to the real installer; the browser handles the .exe
+    // as a file download (download attribute is ignored cross-origin).
+    a.setAttribute("download", "MediSmart-setup.exe");
     a.rel = "noopener noreferrer";
     a.style.display = "none";
     document.body.appendChild(a);
