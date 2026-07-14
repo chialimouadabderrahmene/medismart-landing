@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MessageSquare, Activity, FlaskConical, FileSearch, Lightbulb, Check } from "lucide-react";
+import { MessageSquare, Activity, FlaskConical, FileSearch, Lightbulb, ShieldAlert, Check } from "lucide-react";
 
 const capabilities = [
   {
@@ -28,6 +28,11 @@ const capabilities = [
     icon: Lightbulb,
     title: "Recommandations cliniques",
     description: "Suggestions thérapeutiques personnalisées basées sur les données probantes et le profil patient.",
+  },
+  {
+    icon: ShieldAlert,
+    title: "Alerte médicamenteuse",
+    description: "Analyse le dossier du patient et alerte le médecin lorsqu'un médicament prescrit présente un risque : contre-indication, interaction ou antécédent incompatible.",
   },
 ];
 
