@@ -146,7 +146,11 @@ export async function POST(request: Request) {
       minute: "2-digit",
     });
 
-    await sendNotification(lead, date);
+    try {
+      await sendNotification(lead, date);
+    } catch (emailErr) {
+      console.error("[/api/trial] email failed (non-blocking):", emailErr);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
