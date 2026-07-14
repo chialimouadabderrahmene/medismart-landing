@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-// v4 — raw fetch, no SDK — built: 2026-07-11T15:45:00Z
-// BUILD_ID: b9f3e1a2c4d5
+// v5 — fixed API key + error propagation
 
 const IS_VERCEL = !!process.env.VERCEL;
 
@@ -56,22 +55,25 @@ async function writeLead(lead: Lead): Promise<void> {
 
 // ---------- send via Resend HTTP API directly (no SDK) ----------
 async function sendNotification(lead: Lead, date: string): Promise<void> {
-  const body = {
+  const payload = {
     from: NOTIFICATION_FROM,
     to: [NOTIFICATION_TO],
-    subject: "New MediSmart Trial Request",
-    text: [
-      "New Trial Request",
-      "",
-      `Nom: ${lead.nom} ${lead.prenom}`,
-      `Email: ${lead.email}`,
-      `Téléphone: ${lead.telephone}`,
-      `Spécialité: ${lead.specialite}`,
-      `Cabinet: ${lead.cabinet}`,
-      `Ville: ${lead.ville}`,
-      `Date: ${date}`,
-    ].join("\n"),
+    subject: `Nouvelle demande d'essai — Dr. ${lead.nom} ${lead.prenom}`,
+    html: [
+      `<h2>Nouvelle demande d'essai MediSmart</h2>`,
+      `<table style="border-collapse:collapse;font-family:sans-serif;">`,
+      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Nom</td><td>${lead.nom} ${lead.prenom}</td></tr>`,
+      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Email</td><td>${lead.email}</td></tr>`,
+      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Téléphone</td><td>${lead.telephone}</td></tr>`,
+      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Spécialité</td><td>${lead.specialite}</td></tr>`,
+      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Cabinet</td><td>${lead.cabinet || "—"}</td></tr>`,
+      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Ville</td><td>${lead.ville}</td></tr>`,
+      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Date</td><td>${date}</td></tr>`,
+      `</table>`,
+    ].join(""),
   };
+
+  console.log("[Resend] sending to", NOTIFICATION_TO, "from", NOTIFICATION_FROM);
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -79,15 +81,15 @@ async function sendNotification(lead: Lead, date: string): Promise<void> {
       "Authorization": `Bearer ${RESEND_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
   });
 
   const data = await res.json();
   if (!res.ok) {
-    console.error("[Resend HTTP] error:", JSON.stringify(data));
-  } else {
-    console.log("[Resend HTTP] sent ok, id:", (data as { id: string }).id);
+    console.error("[Resend] FAILED:", res.status, JSON.stringify(data));
+    throw new Error(`Resend error: ${(data as { message?: string }).message || res.status}`);
   }
+  console.log("[Resend] sent ok, id:", (data as { id: string }).id);
 }
 
 // ---------- POST /api/trial ----------
