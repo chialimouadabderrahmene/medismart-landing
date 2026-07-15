@@ -4,8 +4,7 @@ import { NextResponse } from "next/server";
 
 const IS_VERCEL = !!process.env.VERCEL;
 
-// Hardcoded — not read from env to avoid any Vercel caching issues
-const RESEND_KEY = "re_jPhBeQph_LDHQNGfzDdd1pi4CjqtU6iBS";
+const RESEND_KEY = process.env.RESEND_API_KEY || "";
 const NOTIFICATION_TO = "chialimouaduae@gmail.com";
 const NOTIFICATION_FROM = "MediSmart <noreply@neao.online>";
 
