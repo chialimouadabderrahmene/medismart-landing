@@ -58,6 +58,7 @@ async function sendNotification(lead: Lead, date: string): Promise<void> {
   const payload = {
     from: NOTIFICATION_FROM,
     to: [NOTIFICATION_TO],
+    reply_to: NOTIFICATION_TO,
     subject: `Nouvelle demande d'essai — Dr. ${lead.nom} ${lead.prenom}`,
     html: [
       `<h2>Nouvelle demande d'essai MediSmart</h2>`,
