@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 
-// v5 — fixed API key + error propagation
+// Landing "Télécharger MediSmart" form handler.
+//
+// The MediSmart admin backend now owns lead storage + email notifications
+// (via Brevo), so this route simply forwards each demand to it and lets the
+// browser start the download. Doing it here — rather than emailing from the
+// landing app — means one email system to maintain and no secret keys in the
+// landing repo.
 
 const IS_VERCEL = !!process.env.VERCEL;
 
-const RESEND_KEY = process.env.RESEND_API_KEY || "";
-const NOTIFICATION_TO = "chialimouaduae@gmail.com";
-const NOTIFICATION_FROM = "MediSmart <noreply@neao.online>";
+// Admin backend base URL. Same deployment the installer link points at.
+const BACKEND_BASE =
+  process.env.MEDISMART_BACKEND_URL || "https://medismart-backend-main.vercel.app";
 
 interface Lead {
   id: string;
@@ -22,7 +28,7 @@ interface Lead {
   status: "pending";
 }
 
-// ---------- local file helpers ----------
+// ---------- local dev persistence (unchanged; no-op on Vercel) ----------
 async function readLeads(): Promise<Lead[]> {
   if (IS_VERCEL) return [];
   try {
@@ -52,44 +58,34 @@ async function writeLead(lead: Lead): Promise<void> {
   }
 }
 
-// ---------- send via Resend HTTP API directly (no SDK) ----------
-async function sendNotification(lead: Lead, date: string): Promise<void> {
-  const payload = {
-    from: NOTIFICATION_FROM,
-    to: [NOTIFICATION_TO],
-    reply_to: NOTIFICATION_TO,
-    subject: `Nouvelle demande d'essai — Dr. ${lead.nom} ${lead.prenom}`,
-    html: [
-      `<h2>Nouvelle demande d'essai MediSmart</h2>`,
-      `<table style="border-collapse:collapse;font-family:sans-serif;">`,
-      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Nom</td><td>${lead.nom} ${lead.prenom}</td></tr>`,
-      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Email</td><td>${lead.email}</td></tr>`,
-      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Téléphone</td><td>${lead.telephone}</td></tr>`,
-      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Spécialité</td><td>${lead.specialite}</td></tr>`,
-      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Cabinet</td><td>${lead.cabinet || "—"}</td></tr>`,
-      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Ville</td><td>${lead.ville}</td></tr>`,
-      `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Date</td><td>${date}</td></tr>`,
-      `</table>`,
-    ].join(""),
-  };
-
-  console.log("[Resend] sending to", NOTIFICATION_TO, "from", NOTIFICATION_FROM);
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${RESEND_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    console.error("[Resend] FAILED:", res.status, JSON.stringify(data));
-    throw new Error(`Resend error: ${(data as { message?: string }).message || res.status}`);
+// ---------- forward the demand to the admin backend ----------
+// Best-effort: a backend hiccup must never stop the doctor's download, so we
+// swallow errors here and still return success. The form's priority is that
+// the installer starts downloading.
+async function forwardToBackend(lead: Lead): Promise<void> {
+  try {
+    const res = await fetch(`${BACKEND_BASE}/api/install-requests`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nom: lead.nom,
+        prenom: lead.prenom,
+        cabinet: lead.cabinet,
+        specialite: lead.specialite,
+        ville: lead.ville,
+        telephone: lead.telephone,
+        email: lead.email,
+        consent: lead.consent,
+        source: "landing",
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error("[trial] backend forward failed:", res.status, body);
+    }
+  } catch (err) {
+    console.error("[trial] backend forward error:", err);
   }
-  console.log("[Resend] sent ok, id:", (data as { id: string }).id);
 }
 
 // ---------- POST /api/trial ----------
@@ -110,7 +106,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email invalide" }, { status: 400 });
     }
 
-    // Duplicate check (local only)
+    // Duplicate check (local dev only).
     if (!IS_VERCEL) {
       const leads = await readLeads();
       const dup = leads.find(
@@ -136,21 +132,7 @@ export async function POST(request: Request) {
     };
 
     await writeLead(lead);
-
-    const date = new Date(lead.created_at).toLocaleString("fr-FR", {
-      timeZone: "Africa/Algiers",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    try {
-      await sendNotification(lead, date);
-    } catch (emailErr) {
-      console.error("[/api/trial] email failed (non-blocking):", emailErr);
-    }
+    await forwardToBackend(lead);
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -159,7 +141,7 @@ export async function POST(request: Request) {
   }
 }
 
-// ---------- GET /api/trial ----------
+// ---------- GET /api/trial (local dev inspection only) ----------
 export async function GET() {
   const leads = await readLeads();
   return NextResponse.json(leads);
