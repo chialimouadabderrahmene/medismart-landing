@@ -3,6 +3,7 @@
 import { useState, useRef, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Loader2, Download, ArrowDown } from "lucide-react";
+import { trackMetaEvent } from "./MetaPixel";
 
 // Always serves the latest FREE MediSmart installer. This endpoint redirects to
 // the newest free-baseline build in the official releases repo, so the landing
@@ -68,6 +69,7 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
       });
       if (!res.ok) throw new Error("Erreur serveur");
       submittedRef.current = true;
+      trackMetaEvent("Lead", { content_name: "trial_request" });
       triggerDownload();
       setSubmitted(true);
     } catch {
