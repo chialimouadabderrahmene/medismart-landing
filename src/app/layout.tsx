@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     title: "MediSmart — L'intelligence artificielle au service de votre cabinet médical",
     description:
       "Plateforme moderne de gestion de cabinet médical avec intelligence artificielle clinique intégrée.",
-    url: "https://medismart.software",
+    url: "https://neao.online/medismart",
     siteName: "MediSmart",
     locale: "fr_FR",
     type: "website",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
       "Plateforme moderne de gestion de cabinet médical avec intelligence artificielle clinique intégrée.",
   },
   robots: { index: true, follow: true },
-  metadataBase: new URL("https://medismart.software"),
+  metadataBase: new URL("https://neao.online"),
 };
 
 export default function RootLayout({

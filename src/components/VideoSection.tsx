@@ -59,7 +59,7 @@ export default function VideoSection() {
               {/* Native video — controls always visible once playing */}
               <video
                 ref={videoRef}
-                src="/demo.mp4"
+                src="/medismart/demo.mp4"
                 className="w-full h-full object-cover"
                 controls={playing}
                 playsInline
