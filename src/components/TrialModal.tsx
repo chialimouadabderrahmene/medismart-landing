@@ -62,7 +62,7 @@ export default function TrialModal({ open, onClose }: TrialModalProps) {
     setError("");
 
     try {
-      const res = await fetch("/api/trial", {
+      const res = await fetch("/medismart/api/trial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
